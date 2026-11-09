@@ -31,17 +31,21 @@ if not exist data\oc_salud_2026_08.csv (
 )
 
 echo.
-echo [1/3] Analisis exploratorio...
+echo [1/4] Analisis exploratorio...
 python src\eda.py >> "%LOG%" 2>&1
 echo EDA_FIN=%ERRORLEVEL% >> "%LOG%"
 
-echo [2/3] Entrenamiento de modelos...
+echo [2/4] Entrenamiento de modelos...
 python src\modelado.py >> "%LOG%" 2>&1
 echo MODELADO_FIN=%ERRORLEVEL% >> "%LOG%"
 
-echo [3/3] Evaluacion y explicabilidad...
+echo [3/4] Evaluacion y explicabilidad...
 python src\evaluacion.py >> "%LOG%" 2>&1
 echo EVAL_FIN=%ERRORLEVEL% >> "%LOG%"
+
+echo [4/4] Tablas de frecuencia para la aplicacion web...
+python src\frecuencias.py >> "%LOG%" 2>&1
+echo FREC_FIN=%ERRORLEVEL% >> "%LOG%"
 
 echo.
 echo ==========================================================

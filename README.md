@@ -87,6 +87,7 @@ pip install -r requirements.txt
 python src/eda.py              # análisis exploratorio
 python src/modelado.py         # entrena los modelos clásicos y las redes
 python src/evaluacion.py       # evalúa, explica con SHAP y agrupa con K-Means
+python src/frecuencias.py      # tablas de frecuencia que usa la aplicación
 ```
 
 ### Aplicación web
@@ -124,10 +125,11 @@ curl -X POST http://127.0.0.1:5000/api/evaluar \
 **Aprendizaje profundo**, con ponderación de clases:
 
 - `mlp_simple`: perceptrón multicapa de dos capas ocultas
-- `mlp_profunda`: cuatro capas con normalización por lotes y dropout
+- `mlp_profunda`: tres capas ocultas de 256, 128 y 64 unidades, con
+  normalización por lotes y dropout
 - `red_residual`: bloques con conexión residual
 
-La métrica principal es **AUC-PR**, porque con un 9,6 % de positivos la
+La métrica principal es **AUC-PR**, porque con un 9,55 % de positivos la
 exactitud no distingue entre un modelo útil y uno que responde siempre "no".
 
 ## Resultados
