@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block titulo %}Detección de riesgo en trato directo{% endblock %}</title>
+<style>
+  :root { --azul:#1f4e79; --rojo:#c0392b; --verde:#1e8449; --gris:#f4f6f9; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Segoe UI",Arial,sans-serif; color:#222;
+         background:var(--gris); font-size:15px; }
+  header { background:var(--azul); color:#fff; padding:14px 22px;
+           display:flex; align-items:center; gap:24px; flex-wrap:wrap; }
+  header h1 { font-size:18px; margin:0; font-weight:600; }
+  header nav a { color:#cfe0f0; text-decoration:none; margin-right:16px; font-size:14px; }
+  header nav a:hover { color:#fff; text-decoration:underline; }
+  main { max-width:1040px; margin:22px auto; padding:0 18px 50px; }
+  .tarjeta { background:#fff; border:1px solid #dde3ea; border-radius:6px;
+             padding:18px 20px; margin-bottom:18px; }
+  .tarjeta h2 { margin:0 0 12px; font-size:16px; color:var(--azul); }
+  .rejilla { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:12px; }
+  label { display:block; font-size:12px; color:#556; margin-bottom:3px; }
+  input,select { width:100%; padding:7px 8px; border:1px solid #c6cdd6;
+                 border-radius:4px; font-size:14px; background:#fff; }
+  button { background:var(--azul); color:#fff; border:0; border-radius:4px;
+           padding:10px 22px; font-size:15px; cursor:pointer; margin-top:14px; }
+  button:hover { background:#163c5c; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th,td { text-align:left; padding:6px 8px; border-bottom:1px solid #e6eaef; }
+  th { background:#eef2f7; color:#334; font-weight:600; }
+  .nivel { display:inline-block; padding:4px 12px; border-radius:12px;
+           color:#fff; font-size:13px; font-weight:600; }
+  .alto{background:var(--rojo);} .medio{background:#d68910;} .bajo{background:var(--verde);}
+  .grande { font-size:38px; font-weight:700; color:var(--azul); line-height:1; }
+  .pie { color:#778; font-size:12px; margin-top:6px; }
+  .sube { color:var(--rojo); } .baja { color:var(--verde); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Detección de riesgo en compras por trato directo</h1>
+  <nav>
+    <a href="/">Evaluar una compra</a>
+    <a href="/monitoreo">Monitoreo del modelo</a>
+    <a href="/salud">Estado del servicio</a>
+  </nav>
+</header>
+<main>{% block contenido %}{% endblock %}</main>
+</body>
+</html>

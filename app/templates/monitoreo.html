@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block titulo %}Monitoreo del modelo{% endblock %}
+{% block contenido %}
+<div class="tarjeta">
+  <h2>Modelo en producción</h2>
+  <p>Modelo <b>{{ modelo.modelo }}</b> con estrategia de balanceo
+     <b>{{ modelo.balanceo }}</b>.</p>
+  <table>
+    <thead><tr><th>Configuración</th><th>Umbral</th><th>AUC-ROC</th><th>AUC-PR</th>
+      <th>Precisión</th><th>Recall</th><th>F1</th></tr></thead>
+    <tbody>
+    {% for fila in evaluacion %}
+      <tr>
+        <td>{{ fila.configuracion }}</td><td>{{ fila.umbral }}</td>
+        <td>{{ '%.3f'|format(fila.auc_roc) }}</td>
+        <td>{{ '%.3f'|format(fila.auc_pr) }}</td>
+        <td>{{ '%.3f'|format(fila.precision) }}</td>
+        <td>{{ '%.3f'|format(fila.recall) }}</td>
+        <td>{{ '%.3f'|format(fila.f1) }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <p class="pie">Métricas medidas sobre el conjunto de prueba, con datos que el
+     modelo no vio durante el entrenamiento.</p>
+</div>
+
+<div class="tarjeta">
+  <h2>Uso del servicio</h2>
+  <div class="rejilla">
+    <div><div class="grande">{{ resumen.total }}</div>
+         <div class="pie">Evaluaciones realizadas</div></div>
+    <div><div class="grande">
+        {% if resumen.probabilidad_media is not none %}
+          {{ (resumen.probabilidad_media * 100)|round(1) }}%
+        {% else %}-{% endif %}</div>
+         <div class="pie">Probabilidad media entregada</div></div>
+    <div>
+      {% for nivel, cantidad in resumen.por_nivel.items() %}
+        <div><span class="nivel {{ nivel }}">{{ nivel }}</span> {{ cantidad }}</div>
+      {% endfor %}
+      <div class="pie">Reparto por nivel de riesgo</div>
+    </div>
+  </div>
+  <p class="pie">Última evaluación: {{ resumen.ultima or 'sin registros' }}.
+     Un desplazamiento sostenido de la probabilidad media respecto de la tasa
+     base del 9,6 % indicaría que la distribución de las compras cambió y que
+     el modelo debe reentrenarse.</p>
+</div>
+
+<div class="tarjeta">
+  <h2>Variables más influyentes (SHAP global)</h2>
+  <table>
+    <thead><tr><th>Variable</th><th>Valor SHAP medio absoluto</th></tr></thead>
+    <tbody>
+    {% for fila in importancia %}
+      <tr><td>{{ fila.variable }}</td>
+          <td>{{ '%.4f'|format(fila.shap_medio_abs) }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if historial %}
+<div class="tarjeta">
+  <h2>Últimas evaluaciones</h2>
+  <table>
+    <thead><tr><th>Momento</th><th>Probabilidad</th><th>Nivel</th><th>Origen</th></tr></thead>
+    <tbody>
+    {% for fila in historial %}
+      <tr><td>{{ fila.momento }}</td>
+          <td>{{ (fila.probabilidad * 100)|round(1) }}%</td>
+          <td><span class="nivel {{ fila.nivel }}">{{ fila.nivel }}</span></td>
+          <td>{{ fila.origen }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

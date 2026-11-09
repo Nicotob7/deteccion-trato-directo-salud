@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block contenido %}
+<div class="tarjeta">
+  <h2>Datos de la orden de compra</h2>
+  <p class="pie">Los campos que no se completan toman el valor habitual del
+     conjunto de datos, de modo que se pueda evaluar una compra con la
+     información mínima disponible.</p>
+  <form method="post">
+    <div class="rejilla">
+      {% for campo, etiqueta, tipo in campos %}
+        <div>
+          <label for="{{ campo }}">{{ etiqueta }}</label>
+          {% if tipo == 'lista' %}
+            <select name="{{ campo }}" id="{{ campo }}">
+              {% for opcion in opciones.get(campo, []) %}
+                <option value="{{ opcion }}"
+                  {% if enviado.get(campo) == opcion %}selected{% endif %}>{{ opcion }}</option>
+              {% endfor %}
+            </select>
+          {% else %}
+            <input type="number" step="any" name="{{ campo }}" id="{{ campo }}"
+                   value="{{ enviado.get(campo, defectos.get(campo, '')|round(0, 'floor')|int) }}">
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+    <button type="submit">Evaluar riesgo</button>
+  </form>
+</div>
+
+{% if resultado %}
+<div class="tarjeta">
+  <h2>Resultado</h2>
+  <div class="rejilla">
+    <div>
+      <div class="grande">{{ resultado.probabilidad }}%</div>
+      <div class="pie">Probabilidad estimada de que la compra corresponda al
+        perfil de un trato directo</div>
+    </div>
+    <div>
+      <span class="nivel {{ resultado.nivel }}">Riesgo {{ resultado.nivel }}</span>
+      <div class="pie">{{ resultado.accion }}</div>
+      <div class="pie">Umbral de decisión: {{ resultado.umbral }}%</div>
+    </div>
+  </div>
+</div>
+
+{% if resultado.factores %}
+<div class="tarjeta">
+  <h2>Por qué el modelo entrega este resultado</h2>
+  <table>
+    <thead><tr><th>Variable</th><th>Efecto</th><th>Aporte (SHAP)</th></tr></thead>
+    <tbody>
+    {% for f in resultado.factores %}
+      <tr>
+        <td>{{ f.variable }}</td>
+        <td class="{{ f.sentido }}">
+          {% if f.sentido == 'sube' %}aumenta el riesgo{% else %}reduce el riesgo{% endif %}
+        </td>
+        <td>{{ f.aporte }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <p class="pie">Valores SHAP de esta compra en particular. Un aporte positivo
+     empuja la predicción hacia trato directo.</p>
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}
