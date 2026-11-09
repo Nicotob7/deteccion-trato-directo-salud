@@ -44,6 +44,23 @@ DEFECTOS = META['defectos']
 OPCIONES = META['opciones']
 COLUMNAS = META['columnas']
 
+# Tablas de frecuencia de las variables de alta cardinalidad, calculadas con
+# las filas de entrenamiento por src/frecuencias.py. Sin estas tablas la
+# variable frec_OrganismoPublico quedaria congelada en su valor por defecto,
+# y es la primera variable del listado SHAP, asi que el formulario perderia
+# la capacidad de distinguir entre un organismo y otro.
+try:
+    FRECUENCIAS = json.loads(
+        (MODELOS / 'frecuencias.json').read_text(encoding='utf-8'))
+except Exception:
+    FRECUENCIAS = {}
+
+# Los selectores muestran el nombre y la aplicacion traduce ese nombre a la
+# frecuencia relativa que espera el modelo.
+for _columna, _tabla in FRECUENCIAS.items():
+    _ordenadas = sorted(_tabla.items(), key=lambda par: -par[1])[:200]
+    OPCIONES['frec_' + _columna] = [nombre for nombre, _ in _ordenadas]
+
 # Campos que se piden en el formulario. El resto se completa con el valor
 # habitual del conjunto de datos, para que la interfaz sea usable.
 CAMPOS_FORMULARIO = [
@@ -58,6 +75,8 @@ CAMPOS_FORMULARIO = [
     ('FormaPago', 'Forma de pago', 'lista'),
     ('RegionUnidadCompra', 'Region de la unidad de compra', 'lista'),
     ('RubroN1', 'Rubro', 'lista'),
+    ('frec_OrganismoPublico', 'Organismo publico comprador', 'lista'),
+    ('frec_Categoria', 'Categoria del producto o servicio', 'lista'),
 ]
 
 try:
@@ -89,15 +108,47 @@ NOMBRES = nombres_columnas()
 
 
 # ------------------------------------------------------------- utilidades
+def a_numero(valor):
+    """
+    Convierte a numero un texto escrito con separadores en castellano.
+
+    El formulario acepta tanto 3850000 como 3.850.000 y tanto 3,85 como 3.85.
+    La regla es simple: si el texto trae una coma, la coma es el separador
+    decimal y el punto es separador de miles; si no trae coma, el punto se
+    deja tal cual, porque en ese caso es el separador decimal. Sin esta regla
+    un valor como 3.85 se convertia en 385, que es un error de dos ordenes de
+    magnitud en una variable que el modelo usa.
+    """
+    texto = str(valor).strip().replace(' ', '')
+    if not texto:
+        raise ValueError('vacio')
+    if ',' in texto:
+        texto = texto.replace('.', '').replace(',', '.')
+    return float(texto)
+
+
 def armar_fila(entrada):
     """Completa una fila con los valores recibidos y los valores por defecto."""
     fila = dict(DEFECTOS)
     for clave, valor in entrada.items():
         if clave not in fila:
             continue
+        # Los campos frec_* llegan como nombre de organismo o de categoria y
+        # se traducen con la tabla de frecuencias del entrenamiento. Un nombre
+        # que no estaba en entrenamiento toma frecuencia cero, que es el mismo
+        # valor que le asigna preparacion.py.
+        if clave.startswith('frec_') and clave[5:] in FRECUENCIAS:
+            if str(valor) in FRECUENCIAS[clave[5:]]:
+                fila[clave] = float(FRECUENCIAS[clave[5:]][str(valor)])
+            else:
+                try:
+                    fila[clave] = a_numero(valor)
+                except (TypeError, ValueError):
+                    fila[clave] = 0.0
+            continue
         if isinstance(DEFECTOS.get(clave), float):
             try:
-                fila[clave] = float(str(valor).replace('.', '').replace(',', '.'))
+                fila[clave] = a_numero(valor)
             except (TypeError, ValueError):
                 pass
         else:
@@ -116,10 +167,19 @@ def armar_fila(entrada):
 
 
 def clasificar(probabilidad):
-    if probabilidad >= max(UMBRAL, 0.5):
+    """
+    Traduce la probabilidad en una recomendacion de revision.
+
+    La frontera entre revisar y no revisar es el umbral justificado en el
+    informe, que es el que maximiza el F1 sobre el conjunto de validacion.
+    Por encima de ese umbral la compra se revisa. El corte adicional en 0,5
+    no cambia la decision: solo separa, dentro de las compras que hay que
+    revisar, las que conviene revisar primero.
+    """
+    if probabilidad >= 0.5:
         return 'alto', 'Revisar con prioridad'
-    if probabilidad >= UMBRAL * 0.6:
-        return 'medio', 'Revisar si hay capacidad'
+    if probabilidad >= UMBRAL:
+        return 'medio', 'Revisar'
     return 'bajo', 'Sin senales de alerta'
 
 
