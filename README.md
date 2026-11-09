@@ -42,18 +42,26 @@ El archivo **no se versiona** en el repositorio por su tamaño (74,6 MB). Para
 reproducir el proyecto hay que dejarlo en `data/oc_salud_2026_08.csv`. El
 separador de campos es `;`.
 
-Tras descartar las compras ágiles, que son las que no tienen etiqueta, el
-universo de trabajo queda en **102.642 líneas repartidas en 43.548 órdenes de
-compra**, con un **8,08 % de tratos directos**.
+Tras descartar las compras ágiles y los convenios marco, el universo de
+trabajo queda en **86.829 líneas repartidas en 38.787 órdenes de compra**, con
+un **9,55 % de tratos directos**.
 
-### Dos decisiones que condicionan todo el modelado
+### Tres decisiones que condicionan todo el modelado
 
 1. **Se excluyen las columnas que filtran la etiqueta.** `Tipo`,
    `DescripcionTipoOC` y `EsCompraAgil` determinan `EsTratoDirecto` al 100 %.
    Un modelo que las use alcanza un desempeño perfecto sin aprender nada del
    problema.
-2. **La partición se hace por orden de compra, no por línea.** Cada orden
-   tiene en promedio 2,36 líneas. Repartir al azar por línea dejaría líneas de
+2. **Se excluyen también los convenios marco.** Una primera versión los dejó
+   dentro y obtuvo un AUC-PR de 0,793. Al revisar los valores SHAP apareció que
+   la variable más influyente era *que faltara la unidad de medida*, con un peso
+   casi triple al de la siguiente. La unidad de medida, el rubro y la categoría
+   faltan exactamente en las 15.813 líneas de convenio marco, y ninguna de ellas
+   es trato directo: el indicador de dato faltante era un sustituto exacto de la
+   columna `Tipo`. Al corregirlo el AUC-PR bajó a 0,743, y esa diferencia es lo
+   que la fuga estaba inflando.
+3. **La partición se hace por orden de compra, no por línea.** Cada orden
+   tiene en promedio 2,24 líneas. Repartir al azar por línea dejaría líneas de
    la misma orden en entrenamiento y en prueba, e inflaría artificialmente las
    métricas.
 
@@ -119,10 +127,30 @@ curl -X POST http://127.0.0.1:5000/api/evaluar \
 - `mlp_profunda`: cuatro capas con normalización por lotes y dropout
 - `red_residual`: bloques con conexión residual
 
-La métrica principal es **AUC-PR**, porque con un 8 % de positivos la exactitud
-no distingue entre un modelo útil y uno que responde siempre "no".
+La métrica principal es **AUC-PR**, porque con un 9,6 % de positivos la
+exactitud no distingue entre un modelo útil y uno que responde siempre "no".
 
 ## Resultados
+
+El mejor modelo es la **potenciación del gradiente sin ajuste de balanceo**.
+Sobre el conjunto de prueba, con 17.798 líneas que ningún modelo vio durante el
+entrenamiento ni durante la selección:
+
+| Umbral | AUC-ROC | AUC-PR | Precisión | Recall | F1 |
+|--------|---------|--------|-----------|--------|-----|
+| 0,500 (por omisión) | 0,934 | 0,743 | 0,881 | 0,490 | 0,630 |
+| 0,231 (ajustado en validación) | 0,934 | 0,743 | 0,693 | 0,646 | 0,669 |
+
+Dos observaciones del proceso:
+
+- Las tres arquitecturas de aprendizaje profundo quedaron por debajo de los
+  modelos de árboles. La mejor, `red_residual`, alcanzó 0,658 de AUC-PR frente a
+  0,723 de la potenciación del gradiente.
+- **Ninguna estrategia de balanceo mejoró el AUC-PR.** La ponderación, SMOTE y
+  el submuestreo mejoran el F1 medido con umbral fijo en 0,5, pero no cambian el
+  orden en que el modelo clasifica los casos. El mismo efecto se consigue
+  bajando el umbral, sin generar observaciones sintéticas ni descartar datos
+  reales.
 
 Las métricas se generan al ejecutar el pipeline y quedan en
 `resultados/tablas/`:
