@@ -95,13 +95,13 @@ python src/evaluacion.py       # evalúa, explica con SHAP y agrupa con K-Means
 python app/app.py
 ```
 
-Después abrir <http://127.0.0.1:5000/>. La aplicación tiene tres pantallas:
+Después abrir <http://127.0.0.1:5000/>. La aplicación expone cuatro rutas:
 
 | Ruta | Qué hace |
 |------|----------|
 | `/` | Formulario para evaluar una compra. Devuelve la probabilidad, el nivel de riesgo y los factores que explican ese resultado con SHAP. |
-| `/monitoreo` | Panel con las métricas del modelo, el uso del servicio y las variables más influyentes. |
-| `/salud` | Estado del servicio en JSON. |
+| `/monitoreo` | Panel con las métricas del modelo, el uso del servicio, el desvío de la probabilidad media respecto de la tasa base y las variables más influyentes. |
+| `/salud` | Estado del servicio, modelo cargado y umbral vigente, en JSON. |
 | `/api/evaluar` | API REST. Recibe un JSON con los campos de la compra y devuelve la evaluación. |
 
 Ejemplo de llamada a la API:
