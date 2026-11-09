@@ -42,10 +42,27 @@
       <div class="pie">Reparto por nivel de riesgo</div>
     </div>
   </div>
+  {% if resumen.desvio is not none %}
+    <p>
+      {% if resumen.alerta %}
+        <span class="nivel alto">Revisar</span>
+        La probabilidad media se aparta
+        {{ (resumen.desvio * 100)|round(1) }} puntos de la tasa base
+        ({{ (resumen.tasa_base * 100)|round(1) }} %), por encima del margen
+        de {{ (resumen.umbral_alerta * 100)|round(0)|int }} puntos.
+      {% else %}
+        <span class="nivel bajo">En rango</span>
+        La probabilidad media se aparta
+        {{ (resumen.desvio * 100)|round(1) }} puntos de la tasa base
+        ({{ (resumen.tasa_base * 100)|round(1) }} %), dentro del margen
+        de {{ (resumen.umbral_alerta * 100)|round(0)|int }} puntos.
+      {% endif %}
+    </p>
+  {% endif %}
   <p class="pie">Última evaluación: {{ resumen.ultima or 'sin registros' }}.
      Un desplazamiento sostenido de la probabilidad media respecto de la tasa
-     base del 9,6 % indicaría que la distribución de las compras cambió y que
-     el modelo debe reentrenarse.</p>
+     base indicaría que la distribución de las compras cambió y que el modelo
+     debe reentrenarse.</p>
 </div>
 
 <div class="tarjeta">
