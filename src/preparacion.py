@@ -13,9 +13,10 @@ Decisiones que se toman aquí y que están justificadas en el informe:
 2. Se eliminan las columnas que filtran la etiqueta. Tipo, DescripcionTipoOC
    y EsCompraAgil determinan EsTratoDirecto al 100%; un modelo que las use
    alcanza un desempeño perfecto sin aprender nada del problema.
-3. La partición se hace por orden de compra y no por línea. El archivo tiene
-   102.642 líneas repartidas en 43.548 órdenes, por lo que partir al azar por
-   línea dejaría líneas de la misma orden en entrenamiento y en prueba.
+3. La partición se hace por orden de compra y no por línea. El universo de
+   trabajo tiene 86.829 líneas repartidas en 38.787 órdenes, con 2,24 líneas
+   por orden en promedio, por lo que partir al azar por línea dejaría líneas
+   de la misma orden en entrenamiento y en prueba.
 """
 import numpy as np
 import pandas as pd

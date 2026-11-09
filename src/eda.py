@@ -100,34 +100,49 @@ def main():
     for parche in caja['boxes']:
         parche.set_facecolor('#dbe5f1')
     eje.set_xticklabels([c.replace('MontoTotalOC_PesosChilenos', 'MontoTotalOC')
-                         for c in columnas], rotation=18, ha='right', fontsize=7)
+                         for c in columnas], rotation=18, ha='right', fontsize=8.5)
     eje.set_ylabel('log10 del valor')
     eje.set_title('Dispersión y valores atípicos de las variables continuas')
     guardar(fig, 'fig3_outliers.png')
 
     # ---------- Figura 4: correlaciones ----------
+    # Se grafican solo las variables con alguna correlación relevante con otra,
+    # porque un mapa con las 33 resulta ilegible en el informe impreso.
     X = construir_variables(d)
     numericas = [c for c in X.columns
                  if str(X[c].dtype) not in ('string', 'object')]
-    matriz = X[numericas].corr(numeric_only=True)
-    fig, eje = plt.subplots(figsize=(7.2, 6.0))
+    matriz_total = X[numericas].corr(numeric_only=True)
+    sin_diagonal = matriz_total.where(
+        ~np.eye(len(matriz_total), dtype=bool)).abs()
+    relevantes = sin_diagonal.max()[sin_diagonal.max() >= 0.3].index.tolist()
+    if len(relevantes) < 6:
+        relevantes = numericas[:14]
+    matriz = matriz_total.loc[relevantes, relevantes]
+
+    fig, eje = plt.subplots(figsize=(7.4, 6.4))
     imagen = eje.imshow(matriz, cmap='RdBu_r', vmin=-1, vmax=1)
-    eje.set_xticks(range(len(numericas)))
-    eje.set_xticklabels(numericas, rotation=90, fontsize=5.5)
-    eje.set_yticks(range(len(numericas)))
-    eje.set_yticklabels(numericas, fontsize=5.5)
-    eje.set_title('Mapa de calor de correlaciones entre variables numéricas')
+    eje.set_xticks(range(len(relevantes)))
+    eje.set_xticklabels(relevantes, rotation=55, ha='right', fontsize=7.5)
+    eje.set_yticks(range(len(relevantes)))
+    eje.set_yticklabels(relevantes, fontsize=7.5)
+    for i in range(len(relevantes)):
+        for j in range(len(relevantes)):
+            valor = matriz.iloc[i, j]
+            eje.text(j, i, ('%.2f' % valor).replace('0.', '.').replace('-0', '-'),
+                     ha='center', va='center', fontsize=6,
+                     color='white' if abs(valor) > 0.6 else '#333333')
+    eje.set_title('Correlaciones entre las variables numéricas con |r| ≥ 0,3')
     fig.colorbar(imagen, fraction=0.046, pad=0.04)
     guardar(fig, 'fig4_correlaciones.png')
 
     # ---------- Figura 5: tasa de trato directo por organismo y rubro ----------
-    fig, ejes = plt.subplots(1, 2, figsize=(7.8, 3.4))
+    fig, ejes = plt.subplots(1, 2, figsize=(8.6, 3.6))
     org = d.groupby('OrganismoPublico')['y'].agg(['size', 'mean'])
     org = org[org['size'] >= 300].sort_values('mean', ascending=False).head(10)
     etiquetas = [t[:38] + '…' if len(t) > 38 else t for t in org.index]
     ejes[0].barh(range(len(org)), org['mean'] * 100, color=ROJO)
     ejes[0].set_yticks(range(len(org)))
-    ejes[0].set_yticklabels(etiquetas, fontsize=6)
+    ejes[0].set_yticklabels(etiquetas, fontsize=7.5)
     ejes[0].invert_yaxis()
     ejes[0].set_xlabel('% de líneas por trato directo')
     ejes[0].set_title('Organismos con mayor uso de trato directo\n(mínimo 300 líneas)')
@@ -137,7 +152,7 @@ def main():
     etiquetas = [t[:38] + '…' if len(t) > 38 else t for t in rub.index]
     ejes[1].barh(range(len(rub)), rub['mean'] * 100, color=AZUL)
     ejes[1].set_yticks(range(len(rub)))
-    ejes[1].set_yticklabels(etiquetas, fontsize=6)
+    ejes[1].set_yticklabels(etiquetas, fontsize=7.5)
     ejes[1].invert_yaxis()
     ejes[1].set_xlabel('% de líneas por trato directo')
     ejes[1].set_title('Rubros con mayor uso de trato directo\n(mínimo 500 líneas)')
