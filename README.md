@@ -19,6 +19,7 @@ un trato directo, de modo que la fiscalización pueda priorizar qué revisar.
 │   ├── config.py         Rutas, columnas y parámetros del proyecto
 │   ├── preparacion.py    Carga, limpieza, variables y partición por orden
 │   ├── eda.py            Análisis exploratorio: figuras y tablas
+│   ├── frecuencias.py    Tablas de frecuencia que usa la aplicación web
 │   ├── modelado.py       3 modelos clásicos x 4 estrategias de balanceo
 │   ├── dl.py             3 arquitecturas de aprendizaje profundo
 │   └── evaluacion.py     Métricas sobre datos no vistos, SHAP y K-Means
@@ -46,7 +47,7 @@ Tras descartar las compras ágiles y los convenios marco, el universo de
 trabajo queda en **86.829 líneas repartidas en 38.787 órdenes de compra**, con
 un **9,55 % de tratos directos**.
 
-### Tres decisiones que condicionan todo el modelado
+### Cinco decisiones que condicionan todo el modelado
 
 1. **Se excluyen las columnas que filtran la etiqueta.** `Tipo`,
    `DescripcionTipoOC` y `EsCompraAgil` determinan `EsTratoDirecto` al 100 %.
@@ -60,10 +61,24 @@ un **9,55 % de tratos directos**.
    es trato directo: el indicador de dato faltante era un sustituto exacto de la
    columna `Tipo`. Al corregirlo el AUC-PR bajó a 0,743, y esa diferencia es lo
    que la fuga estaba inflando.
-3. **La partición se hace por orden de compra, no por línea.** Cada orden
+3. **La codificación por frecuencia se ajusta solo con las filas de
+   entrenamiento.** Una versión anterior la calculaba sobre el universo
+   completo, de modo que la frecuencia de cada organismo y de cada proveedor
+   llevaba dentro información de validación y de prueba. Es una fuga pequeña,
+   pero es una fuga, y además afectaba a la variable que encabezaba el listado
+   SHAP. Al corregirla el AUC-PR de prueba pasó de 0,743 a 0,741, dos
+   milésimas, y `frec_OrganismoPublico` dejó de ser la primera variable del
+   listado SHAP y pasó a la segunda.
+4. **La partición se hace por orden de compra, no por línea.** Cada orden
    tiene en promedio 2,24 líneas. Repartir al azar por línea dejaría líneas de
    la misma orden en entrenamiento y en prueba, e inflaría artificialmente las
    métricas.
+5. **Las dos variables de región se normalizan antes de codificarlas.** En el
+   universo de trabajo, `RegionUnidadCompra` trae 26 etiquetas distintas para
+   las 16 regiones del país y `RegionProveedor` trae 44, porque la misma región
+   aparece con el prefijo «Región de» y sin él, con espacios sobrantes y con
+   acentos distintos. Sin esa limpieza el codificador one-hot reparte entre dos
+   columnas la señal de una sola región.
 
 ## Instalación y ejecución
 
@@ -140,14 +155,15 @@ entrenamiento ni durante la selección:
 
 | Umbral | AUC-ROC | AUC-PR | Precisión | Recall | F1 |
 |--------|---------|--------|-----------|--------|-----|
-| 0,500 (por omisión) | 0,934 | 0,743 | 0,881 | 0,490 | 0,630 |
-| 0,231 (ajustado en validación) | 0,934 | 0,743 | 0,693 | 0,646 | 0,669 |
+| 0,500 (por omisión) | 0,938 | 0,741 | 0,883 | 0,490 | 0,630 |
+| 0,252 (ajustado en validación) | 0,938 | 0,741 | 0,696 | 0,625 | 0,659 |
 
 Dos observaciones del proceso:
 
 - Las tres arquitecturas de aprendizaje profundo quedaron por debajo de los
-  modelos de árboles. La mejor, `red_residual`, alcanzó 0,658 de AUC-PR frente a
-  0,723 de la potenciación del gradiente.
+  modelos de árboles. La mejor, `mlp_profunda`, alcanzó 0,636 de AUC-PR frente a
+  0,728 de la potenciación del gradiente, con más del doble de tiempo de
+  entrenamiento.
 - **Ninguna estrategia de balanceo mejoró el AUC-PR.** La ponderación, SMOTE y
   el submuestreo mejoran el F1 medido con umbral fijo en 0,5, pero no cambian el
   orden en que el modelo clasifica los casos. El mismo efecto se consigue
