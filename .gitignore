@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+*.pyc
+data/*.csv
+log_ejecucion.txt
+resultados/modelos/*.joblib
+resultados/modelos/*.keras
