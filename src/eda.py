@@ -16,8 +16,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from config import FIGURAS, NUMERICAS, TABLAS
-from preparacion import cargar_crudo, construir_variables, filtrar_universo
+from config import COLUMNA_GRUPO, FIGURAS, NUMERICAS, TABLAS
+from preparacion import (cargar_crudo, construir_variables, filtrar_universo,
+                         indices_particion)
 
 plt.rcParams.update({'figure.dpi': 130, 'font.size': 9,
                      'axes.titlesize': 10, 'figure.autolayout': True})
@@ -108,7 +109,11 @@ def main():
     # ---------- Figura 4: correlaciones ----------
     # Se grafican solo las variables con alguna correlación relevante con otra,
     # porque un mapa con las 33 resulta ilegible en el informe impreso.
-    X = construir_variables(d)
+    # La codificación por frecuencia se ajusta con las filas de entrenamiento,
+    # igual que en el modelado, para que la figura muestre las mismas
+    # variables que recibe el modelo y no otras.
+    indices = indices_particion(d['y'], d[COLUMNA_GRUPO])
+    X = construir_variables(d, indices_ajuste=indices['entrena'])
     numericas = [c for c in X.columns
                  if str(X[c].dtype) not in ('string', 'object')]
     matriz_total = X[numericas].corr(numeric_only=True)
