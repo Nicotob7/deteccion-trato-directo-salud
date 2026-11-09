@@ -1,0 +1,16 @@
+modelo,balanceo,filas_entrenamiento,auc_roc,auc_pr,precision,recall,f1,segundos,familia,parametros,epocas_usadas
+regresion_logistica,sin_balanceo,55073,0.811,0.3817,0.5869,0.1806,0.2762,3.6,Machine Learning,,
+regresion_logistica,ponderacion,55073,0.8161,0.3495,0.2345,0.6951,0.3506,4.0,Machine Learning,,
+regresion_logistica,smote,100032,0.8137,0.3503,0.236,0.7009,0.353,7.9,Machine Learning,,
+regresion_logistica,submuestreo,10114,0.814,0.3382,0.2326,0.6871,0.3475,1.4,Machine Learning,,
+bosque_aleatorio,sin_balanceo,55073,0.91,0.6789,0.96,0.2254,0.3651,35.9,Machine Learning,,
+bosque_aleatorio,ponderacion,55073,0.8945,0.6328,0.6169,0.5108,0.5589,32.0,Machine Learning,,
+bosque_aleatorio,smote,100032,0.8963,0.6552,0.6254,0.5188,0.5671,68.7,Machine Learning,,
+bosque_aleatorio,submuestreo,10114,0.8767,0.5568,0.3634,0.7139,0.4816,5.2,Machine Learning,,
+gradient_boosting,sin_balanceo,55073,0.9132,0.723,0.8915,0.4689,0.6146,18.9,Machine Learning,,
+gradient_boosting,ponderacion,55073,0.8948,0.6883,0.5383,0.6756,0.5992,18.7,Machine Learning,,
+gradient_boosting,smote,100032,0.8986,0.7067,0.6983,0.5954,0.6427,35.4,Machine Learning,,
+gradient_boosting,submuestreo,10114,0.9008,0.651,0.4613,0.763,0.575,5.8,Machine Learning,,
+mlp_simple,ponderacion,55073,0.8439,0.6183,0.4341,0.6944,0.5342,16.7,Deep Learning,11777,30
+mlp_profunda,ponderacion,55073,0.8702,0.6411,0.4342,0.7348,0.5459,29.6,Deep Learning,81409,15
+red_residual,ponderacion,55073,0.8675,0.6577,0.5746,0.6286,0.6004,47.8,Deep Learning,90561,24

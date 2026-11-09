@@ -1,0 +1,21 @@
+variable,shap_medio_abs
+num__frec_OrganismoPublico,0.59587
+num__lineas_en_la_orden,0.54892
+num__precioNeto,0.40103
+num__frec_NombreProveedor,0.2425
+num__cantidad,0.22313
+num__Impuestos,0.21028
+num__frec_Categoria,0.20542
+num__frec_UnidadCompra,0.1831
+num__dia_del_mes,0.13352
+num__MontoTotalOC_PesosChilenos,0.12987
+num__razon_impuesto,0.12793
+cat__RegionProveedor_Región Metropolitana de Santiago,0.12033
+cat__RegionUnidadCompra_Región de Coquimbo ,0.11365
+cat__UnidadMedida_Unidad no definida,0.10595
+cat__RegionUnidadCompra_Región de Valparaíso ,0.10587
+num__razon_linea_total,0.10078
+cat__RegionUnidadCompra_Región de Arica y Parinacota,0.09956
+cat__RegionUnidadCompra_Región del Maule ,0.09342
+cat__RegionUnidadCompra_Bío-Bío,0.08604
+cat__RegionUnidadCompra_Valparaíso,0.07959
