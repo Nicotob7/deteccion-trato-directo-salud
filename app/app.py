@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-TallerRiesgo: aplicación web de apoyo a la fiscalización de compras
-públicas por trato directo en el sector Salud.
+RiesgoTD: aplicación web de apoyo a la fiscalización de compras públicas
+por trato directo en el sector Salud.
 
 Backend en Flask y frontend en HTML servido por el mismo proceso. Expone
 además una API REST, de modo que el modelo pueda consumirse desde otros
@@ -30,7 +30,6 @@ from config import MODELOS, TABLAS
 app = Flask(
     __name__,
     template_folder=str(Path(__file__).resolve().parent / 'templates'),
-    static_folder=str(Path(__file__).resolve().parent / 'static'),
 )
 REGISTRO = RAIZ / 'resultados' / 'registro_predicciones.csv'
 
@@ -191,17 +190,28 @@ def api_evaluar():
                     'factores': explicar(matriz)})
 
 
+# Tasa de trato directo del universo de entrenamiento. Es la referencia
+# contra la que se compara la probabilidad media de las evaluaciones.
+TASA_BASE = 0.0955
+DESVIO_ALERTA = 0.05
+
+
 @app.route('/monitoreo')
 def monitoreo():
     historial = pd.DataFrame()
     if REGISTRO.exists():
         historial = pd.read_csv(REGISTRO)
+    media = float(historial['probabilidad'].mean()) if len(historial) else None
+    desvio = (media - TASA_BASE) if media is not None else None
     resumen = {
         'total': len(historial),
         'por_nivel': (historial['nivel'].value_counts().to_dict()
                       if len(historial) else {}),
-        'probabilidad_media': (round(historial['probabilidad'].mean(), 4)
-                               if len(historial) else None),
+        'probabilidad_media': round(media, 4) if media is not None else None,
+        'tasa_base': TASA_BASE,
+        'desvio': round(desvio, 4) if desvio is not None else None,
+        'alerta': (desvio is not None and abs(desvio) > DESVIO_ALERTA),
+        'umbral_alerta': DESVIO_ALERTA,
         'ultima': (historial['momento'].iloc[-1] if len(historial) else None),
     }
     return render_template('monitoreo.html', resumen=resumen,
@@ -218,5 +228,5 @@ def salud():
 
 
 if __name__ == '__main__':
-    print('TallerRiesgo en http://127.0.0.1:5000/')
+    print('RiesgoTD en http://127.0.0.1:5000/')
     app.run(host='127.0.0.1', port=5000, debug=False)
